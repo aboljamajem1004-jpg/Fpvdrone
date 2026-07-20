@@ -131,7 +131,8 @@ export class FlightController {
       } else {
         pitchTilt = p * maxTilt;
       }
-      const rollTilt = this.sRoll * maxTilt;
+      // yaw stick banks the drone slightly so flat turns become carves
+      const rollTilt = this.sRoll * maxTilt + input.yaw * d.turn.yawBankDeg * DEG;
 
       // current yaw from the drone's orientation
       _euler.setFromQuaternion(_q, 'YXZ');
@@ -162,8 +163,13 @@ export class FlightController {
         .multiplyScalar(angle * d.angleP * inertia)
         .addScaledVector(_angvel, -d.angleD * inertia);
 
-      // yaw command as a rate on top of attitude hold
-      const yawRate = -input.yaw * d.angleYawRateDeg * DEG;
+      // yaw command: stick rate + coordinated-turn coupling — banking
+      // feeds a turn proportional to bank angle and airspeed, so roll
+      // carves a smooth banked turn instead of just strafing sideways.
+      const horizSpeed = Math.hypot(lv.x, lv.z);
+      const sf = clamp(horizSpeed / d.turn.speedRef, d.turn.minSpeedFactor, 1.4);
+      const yawRate =
+        -input.yaw * d.angleYawRateDeg * DEG - rollTilt * d.turn.bankYawGain * sf;
       _torque.addScaledVector(_up, (yawRate - _localAngvel.y) * 6 * inertia);
 
       body.addTorque({ x: _torque.x, y: _torque.y, z: _torque.z }, true);

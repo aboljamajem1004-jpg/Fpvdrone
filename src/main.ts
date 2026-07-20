@@ -305,6 +305,7 @@ class Game {
       this.rig.update(this.drone, this.settings, effThrottle, dt);
       // own airframe is invisible from the FPV camera (it sits inside it)
       this.drone.mesh.visible = this.rig.mode === 'chase';
+      this.hud.setOsdVisible(this.rig.mode === 'fpv');
 
       // HUD
       const pos = this.drone.renderPos;

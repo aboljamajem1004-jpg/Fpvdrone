@@ -28,29 +28,30 @@ export class CameraRig {
     camera.add(this.fpvProps);
   }
 
-  // Two prop discs at the lower edge of the FPV view, like a real
-  // freestyle quad where you see your own props at the frame edge.
+  // FPV frame furniture like a real quad camera: spinning blade tips
+  // slicing in from the left/right screen edges (front + rear props),
+  // and the drone's nose wedge at the bottom center of the view.
   private buildFpvProps(): THREE.Group {
     const group = new THREE.Group();
     const bladeMat = new THREE.MeshBasicMaterial({
-      color: 0x1c2026,
+      color: 0x14171c,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.8,
     });
-    const discMat = new THREE.MeshBasicMaterial({
-      color: 0x3a424c,
-      transparent: true,
-      opacity: 0.16,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-    });
-    const bladeGeo = new THREE.BoxGeometry(0.15, 0.004, 0.02);
-    bladeGeo.translate(0.075, 0, 0); // spin around one end
-    const hubGeo = new THREE.CylinderGeometry(0.013, 0.013, 0.018, 8);
-    const discGeo = new THREE.CircleGeometry(0.15, 20);
-    discGeo.rotateX(-Math.PI / 2);
+    const bladeGeo = new THREE.BoxGeometry(0.26, 0.004, 0.02);
+    bladeGeo.translate(0.13, 0, 0); // spin around one end
+    const hubGeo = new THREE.CylinderGeometry(0.014, 0.014, 0.02, 8);
 
-    for (const x of [-0.88, 0.88]) {
+    // front pair (upper edges) + rear pair (lower edges), just outside
+    // the frame so only the sweeping tips cross into view
+    const mounts: [number, number, number, number][] = [
+      // x, y, z, z-lean
+      [-1.14, 0.0, -0.5, 0.22],
+      [1.14, 0.0, -0.5, -0.22],
+      [-1.24, -0.5, -0.56, 0.32],
+      [1.24, -0.5, -0.56, -0.32],
+    ];
+    for (const [x, y, z, lean] of mounts) {
       const prop = new THREE.Group();
       const spinner = new THREE.Group();
       for (let b = 0; b < 3; b++) {
@@ -60,14 +61,25 @@ export class CameraRig {
       }
       spinner.add(new THREE.Mesh(hubGeo, bladeMat));
       prop.add(spinner);
-      prop.add(new THREE.Mesh(discGeo, discMat));
-      // tucked into the lower corners so only the tips peek into view
-      prop.position.set(x, -0.68, -0.6);
-      prop.rotation.x = 1.25; // disc leans toward the camera
-      prop.rotation.z = x > 0 ? -0.18 : 0.18;
+      prop.position.set(x, y, z);
+      prop.rotation.x = 1.5; // near edge-on: blades read as thin spikes
+      prop.rotation.z = lean;
       group.add(prop);
       this.propSpinners.push(spinner);
     }
+
+    // nose wedge (camera pod) rising from the bottom center
+    const noseGeo = new THREE.ConeGeometry(0.09, 0.34, 4);
+    noseGeo.rotateY(Math.PI / 4);
+    const nose = new THREE.Mesh(
+      noseGeo,
+      new THREE.MeshLambertMaterial({ color: 0xb3ab9d }),
+    );
+    nose.scale.set(1.6, 1, 0.55);
+    nose.position.set(0, -0.42, -0.62);
+    nose.rotation.x = -1.25; // tip points up-forward into the view
+    group.add(nose);
+
     group.visible = false;
     return group;
   }

@@ -11,6 +11,7 @@ export class Hud {
   private raceGateEl = document.getElementById('race-gate')!;
   private raceBestEl = document.getElementById('race-best')!;
   private msgEl = document.getElementById('hud-msg')!;
+  private osdEl = document.getElementById('osd')!;
   private btnReset = document.getElementById('btn-reset') as HTMLButtonElement;
   private btnMenu = document.getElementById('btn-menu') as HTMLButtonElement;
   private msgTimer = 0;
@@ -35,6 +36,10 @@ export class Hud {
 
   setRaceVisible(v: boolean): void {
     this.raceEl.classList.toggle('hidden', !v);
+  }
+
+  setOsdVisible(v: boolean): void {
+    this.osdEl.classList.toggle('hidden', !v);
   }
 
   update(throttle: number, speedMs: number, altitude: number): void {
