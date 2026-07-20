@@ -13,6 +13,8 @@ export class KeyboardMouseInput {
   private throttle = 0;
   sensitivity = 1;
   enabled = false;
+  /** hover-assist mode: throttle springs back to center (hold altitude) */
+  hoverMode = false;
 
   private canvas: HTMLCanvasElement;
   private onKeyDown = (e: KeyboardEvent) => {
@@ -67,8 +69,14 @@ export class KeyboardMouseInput {
     if (!this.enabled) return;
 
     const throttleRate = 1.4; // full range in ~0.7 s
-    if (this.keys.has('KeyW')) this.throttle += throttleRate * dt;
-    if (this.keys.has('KeyS')) this.throttle -= throttleRate * dt;
+    const w = this.keys.has('KeyW');
+    const s = this.keys.has('KeyS');
+    if (w) this.throttle += throttleRate * dt;
+    if (s) this.throttle -= throttleRate * dt;
+    if (this.hoverMode && !w && !s) {
+      // spring back to center = hold altitude
+      this.throttle += (0.5 - this.throttle) * Math.min(1, 6 * dt);
+    }
     this.throttle = clamp(this.throttle, 0, 1);
 
     // mouse "stick" springs back toward center
@@ -100,7 +108,7 @@ export class KeyboardMouseInput {
   }
 
   resetThrottle(): void {
-    this.throttle = 0;
+    this.throttle = this.hoverMode ? 0.5 : 0;
     this.mousePitch = 0;
     this.mouseYaw = 0;
   }

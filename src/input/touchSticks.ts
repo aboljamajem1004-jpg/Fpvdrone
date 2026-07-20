@@ -21,6 +21,8 @@ export class TouchSticksInput {
   private right: Stick;
   private throttle = 0;
   enabled = false;
+  /** hover-assist mode: left stick vertical maps directly (center = hold) */
+  hoverMode = false;
 
   constructor(layer: HTMLDivElement) {
     this.layer = layer;
@@ -114,13 +116,18 @@ export class TouchSticksInput {
   update(out: InputState, dt: number): void {
     if (!this.enabled) return;
 
-    // left stick vertical drives throttle as a rate (push up = spool up),
-    // so throttle holds its value when the finger lifts.
-    if (this.left.pointerId !== null) {
-      this.throttle = clamp(this.throttle + -this.left.dy * 1.6 * dt, 0, 1);
+    if (this.hoverMode) {
+      // direct mapping: finger up = climb, down = descend, released = hold
+      out.throttle =
+        this.left.pointerId !== null ? clamp(0.5 - this.left.dy * 0.55, 0, 1) : 0.5;
+    } else {
+      // acro: left stick vertical drives throttle as a rate (push up =
+      // spool up), so throttle holds its value when the finger lifts.
+      if (this.left.pointerId !== null) {
+        this.throttle = clamp(this.throttle + -this.left.dy * 1.6 * dt, 0, 1);
+      }
+      out.throttle = this.throttle;
     }
-
-    out.throttle = this.throttle;
     out.yaw = this.left.pointerId !== null ? this.left.dx : 0;
     out.pitch = this.right.pointerId !== null ? -this.right.dy : 0; // push up = forward
     out.roll = this.right.pointerId !== null ? this.right.dx : 0;

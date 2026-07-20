@@ -23,6 +23,7 @@ export function createRenderer(canvas: HTMLCanvasElement): RenderContext {
   scene.fog = new THREE.Fog(0x9cc0e0, 150, 700);
 
   const camera = new THREE.PerspectiveCamera(105, 1, 0.05, 1200);
+  scene.add(camera); // so camera-attached objects (FPV props) render
 
   const sun = new THREE.DirectionalLight(0xfff2df, 2.6);
   sun.position.set(180, 260, 120);

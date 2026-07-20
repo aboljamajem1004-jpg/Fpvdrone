@@ -25,6 +25,24 @@ export const PHYSICS = {
     angleP: 60, // attitude error → torque
     angleD: 8, // damping against angular velocity
     angleYawRateDeg: 220, // yaw stick rate in angle mode
+    angleExpo: 0.3, // soft center on the pitch/roll stick (angle mode)
+    stickSmoothing: 9, // low-pass rate on pitch/roll input (higher = snappier)
+
+    // Dive: pushing pitch past the threshold unlocks extra forward tilt
+    // so you can swoop onto a target; camera compensates to keep the
+    // ground in view (see cameraRig).
+    dive: {
+      threshold: 0.85, // stick fraction where extra tilt starts
+      extraTiltDeg: 28, // added on top of maxTiltDeg at full stick
+    },
+
+    // Hover assist (angle mode): throttle stick centered = hold altitude,
+    // up = climb, down = descend/land. Acro mode keeps raw throttle.
+    hover: {
+      maxClimbRate: 6, // m/s at full stick up
+      maxDescendRate: 3, // m/s at full stick down (gentle enough to land)
+      velGain: 3.2, // vertical-velocity error → acceleration
+    },
 
     // Aerodynamic drag: F = -(linear*v + quadratic*|v|*v)
     dragLinear: 0.1,
@@ -34,7 +52,8 @@ export const PHYSICS = {
     linearDamping: 0.0,
 
     // impact force (N) above which the drone counts as crashed
-    crashForce: 90,
+    // (high enough that a gentle assisted landing never triggers it)
+    crashForce: 150,
     respawnDelay: 1.0, // seconds
   },
 

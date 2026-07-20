@@ -108,6 +108,9 @@ class Game {
     this.rc.applyQuality(s.quality);
     this.audio.setVolume(s.volume);
     this.kb.sensitivity = s.mouseSensitivity;
+    const hover = s.flightMode === 'angle';
+    this.kb.hoverMode = hover;
+    this.touch.hoverMode = hover;
     this.scheme = resolveControlScheme(s);
     this.menus.setHelpText(this.scheme === 'touch' ? STR.helpTouch : STR.helpDesktop);
     this.checkOrientation();
@@ -136,6 +139,7 @@ class Game {
 
     this.kb.resetThrottle();
     this.touch.resetThrottle();
+    this.controller.reset();
     this.crashTimer = -1;
     this.graceTimer = 1.5;
     this.menus.hide();
@@ -196,6 +200,7 @@ class Game {
     this.drone.teleport(cp.pos, cp.yaw);
     this.kb.resetThrottle();
     this.touch.resetThrottle();
+    this.controller.reset();
     this.crashTimer = -1;
     this.graceTimer = 1.5;
     if (!manual) this.rig.kickShake(0.3);
@@ -275,7 +280,7 @@ class Game {
       const crashed = this.crashTimer >= 0;
       if (crashed) {
         this.crashTimer -= dt;
-        this.input.throttle = 0;
+        this.input.throttle = 0; // hover assist reads this as full-descend
         this.input.pitch = 0;
         this.input.roll = 0;
         this.input.yaw = 0;
@@ -294,8 +299,10 @@ class Game {
       if (steps === 5) this.accumulator = 0;
 
       const alpha = this.accumulator / step;
-      this.drone.interpolate(alpha, this.input.throttle, dt);
-      this.rig.update(this.drone, this.settings, this.input.throttle, dt);
+      // motors are cut while resting on the ground (hover-assist landing)
+      const effThrottle = this.controller.landed ? 0 : this.input.throttle;
+      this.drone.interpolate(alpha, effThrottle, dt);
+      this.rig.update(this.drone, this.settings, effThrottle, dt);
       // own airframe is invisible from the FPV camera (it sits inside it)
       this.drone.mesh.visible = this.rig.mode === 'chase';
 
@@ -321,13 +328,14 @@ class Game {
         );
       }
 
-      this.audio.update(this.input.throttle, this.drone.speed(), !crashed);
+      this.audio.update(effThrottle, this.drone.speed(), !crashed);
     } else {
       // menu background: slow orbit around the world
       const t = now * 0.00005;
       const r = 260;
       this.rc.camera.position.set(Math.cos(t) * r, 90, Math.sin(t) * r);
       this.rc.camera.lookAt(0, 0, 0);
+      this.rig.setPropsVisible(false);
       this.audio.update(0, 0, false);
     }
 
