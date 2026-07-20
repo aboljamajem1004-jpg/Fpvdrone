@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0a0e1a" />
+    <title>SkyRush FPV</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🛸%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/ui/style.css" />
+  </head>
+  <body>
+    <canvas id="game-canvas"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div id="hud-left">
+        <div id="throttle-bar"><div id="throttle-fill"></div></div>
+      </div>
+      <div id="hud-bottom">
+        <span id="hud-speed">0 km/h</span>
+        <span id="hud-alt">0 m</span>
+      </div>
+      <div id="hud-race" class="hidden">
+        <div id="race-time">0:00.00</div>
+        <div id="race-gate">1/12</div>
+        <div id="race-best"></div>
+      </div>
+      <div id="hud-msg"></div>
+      <button id="btn-reset" class="hud-btn hidden" aria-label="Reset">↺</button>
+      <button id="btn-menu" class="hud-btn hidden" aria-label="Menu">☰</button>
+    </div>
+
+    <!-- Touch sticks layer -->
+    <div id="touch-layer" class="hidden"></div>
+
+    <!-- Menus -->
+    <div id="menu-root"></div>
+
+    <!-- Rotate device overlay -->
+    <div id="rotate-overlay" class="hidden">
+      <div class="rotate-box">
+        <div class="rotate-icon">⟳</div>
+        <p>Rotate your device to landscape</p>
+      </div>
+    </div>
+
+    <div id="stats" class="hidden"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
